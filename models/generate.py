@@ -68,7 +68,10 @@ class PCCoTGenerationMixin(GenerationMixin):
 
         # setup the padding token
         if generation_config and generation_config.pad_token_id is None:
-            generation_config.pad_token_id = generation_config.eos_token_id
+            if isinstance(generation_config.eos_token_id, int):
+                generation_config.pad_token_id = generation_config.eos_token_id # gpt2
+            elif isinstance(generation_config.eos_token_id, list) and len(generation_config.eos_token_id) > 0:
+                generation_config.pad_token_id = generation_config.eos_token_id[-1] # llama
 
         kwargs_has_attention_mask = model_kwargs.get("attention_mask", None) is not None
         self._prepare_special_tokens(generation_config, kwargs_has_attention_mask, device=self.device)
