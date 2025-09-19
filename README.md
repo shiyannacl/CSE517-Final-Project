@@ -13,6 +13,8 @@
 
 The code base for project **Parallel Continuous Chain-of-Thought**, parallelizing the continuous chain-of-thought approach with Jacobi iteration. It improves both training and inference efficiency of continuous chain-of-thought, with better performance on reasoning tasks. The paper "[Parallel Continuous Chain-of-Thought with Jacobi Iteration](https://arxiv.org/abs/2506.18582)" was accepted to EMNLP 2025 main conference.
 
+Welcome to come to our oral session at EMNLP 2025, Session 5, Wed, November 5, 16:30-18:00.
+
 ## Installation
 
 Change the cuda version if it is not compatible. Developped with python 3.12.4.
