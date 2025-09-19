@@ -681,6 +681,8 @@ def main():
             ccot_result = metric.compute(predictions=decoded_preds, references=decoded_labels)
 
             # cot preds
+            cot_labels = cot_labels[:, 1:]
+            cot_preds = cot_preds[:, :-1]
             cot_preds[cot_preds == -100] = tokenizer.pad_token_id
             cot_preds[cot_labels == -100] = tokenizer.pad_token_id
             cot_preds = [ignore_after_eos(pred) for pred in cot_preds]
