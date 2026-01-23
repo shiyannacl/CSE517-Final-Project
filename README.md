@@ -26,8 +26,6 @@ pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.
 pip install -r requirements.txt
 ```
 
-The `transformers` package has a bug in the version we use. See [Trouble shooting](#trouble-shooting) for more details.
-
 ## Quick Start
 
 We have released a finetuned GPT-2 model described in our paper on [HuggingFace](https://huggingface.co/whynlp/pccot-gpt2). To run this model, please first clone this repo then execute the following command:
@@ -121,23 +119,3 @@ accelerate launch run_ccot.py \
 ```
 
 If you are loading a trained PCCoT model, then these arguments will by default be loaded from the checkpoint. If you want to override them, please remove the corresponding codes in the python script.
-
-
-## Trouble Shooting
-
-### Flash Attention
-
-#### Behaviour
-```
-    query_layer, indices_q, cu_seqlens_q, max_seqlen_in_batch_q = unpad_input(query_layer, attention_mask)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ValueError: too many values to unpack (expected 4)
-```
-
-#### Solution
-The transformers package has a bug in the version we use. Change it to
-```
-query_layer, indices_q, cu_seqlens_q, max_seqlen_in_batch_q, *_ = unpad_input(query_layer, attention_mask)
-```
-
-to fix this.

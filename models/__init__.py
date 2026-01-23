@@ -5,6 +5,7 @@ from .modeling_gpt2 import PCCoTGPT2LMHeadModel
 from .pccot_arguments import PCCoTArguments, PCCOT_ARGS_NAME
 from .data_processor import COTDataProcessor
 from .wandb_callback import CustomWandbCallback
+from .modeling_flash_attention_utils import _upad_input
 from transformers.integrations import INTEGRATION_TO_CALLBACK
 
 from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, AutoModelForTokenClassification
