@@ -52,7 +52,7 @@ cp run_ccot.sh.template run_ccot.sh
 bash run_ccot.sh
 ```
 
-It will finetune a GPT-2 model on the [GSM8K-AUG](https://huggingface.co/datasets/whynlp/gsm8k-aug) dataset. See the script for more details.
+It will finetune a GPT-2 and a Llama3.2-1B model on the [GSM8K-AUG](https://huggingface.co/datasets/whynlp/gsm8k-aug) dataset. See the script for more details.
 
 We use the same [training script](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm.py) as the original `transformers` library with slight modifications. You may refer to the [official documentation](https://huggingface.co/transformers/training.html) for more details.
 
@@ -112,6 +112,7 @@ To setup the arguments just write them in the shell script:
 
 ```sh
 accelerate launch run_ccot.py \
+    --use_chat_template true \
     --num_latent_tokens 24 \
     --answer_prompt "The answer is:" \
     --lora_r 128 \
