@@ -72,12 +72,26 @@ class COTDataProcessor:
         )
 
     def tokenize_function(self, examples):
-        output = {
-            "question": self.tokenizer(
+        # if use chat template and the tokenizer has chat template, use it
+        if (
+            self.pccot_args.use_chat_template
+            and hasattr(self.tokenizer, "chat_template")
+            and self.tokenizer.chat_template
+        ):
+            question = [
+                self.tokenizer.apply_chat_template([{"role": "user", "content": _example_question},], add_generation_prompt=True)
+                for _example_question in examples["question"]
+            ]
+        else:
+            question = self.tokenizer(
                 examples["question"],
                 return_attention_mask=False,
                 add_special_tokens=True,
-            )["input_ids"],
+            )["input_ids"]
+
+        # tokenize the steps and answer
+        output = {
+            "question": question,
             "steps": [
                 self.tokenizer(
                     steps[:-1], return_attention_mask=False, add_special_tokens=False

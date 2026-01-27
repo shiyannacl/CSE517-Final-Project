@@ -27,6 +27,10 @@ class PCCoTArguments:
         default=-100,
         metadata={"help": "The id of the padding token for labels. Labels with this id will not be taken into account in the loss computation. Please do not set this argument unless you understand the consequences."}
     )
+    use_chat_template: bool = field(
+        default=False,
+        metadata={"help": "Whether to use the chat template for input formatting."}
+    )
 
     # CoT specific arguments
     answer_prompt: str = field(
