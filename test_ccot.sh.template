@@ -20,6 +20,6 @@ accelerate launch test_ccot.py \
     --do_eval \
     --do_predict \
     --report_to none \
-    --run_name pcot-gpt2-lora-test \
+    --run_name pccot-gpt2-lora-test \
     --overwrite_output_dir \
-    --output_dir outputs/pcot-gpt2-lora-test
+    --output_dir outputs/pccot-gpt2-lora-test

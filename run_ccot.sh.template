@@ -38,5 +38,5 @@ accelerate launch run_ccot.py \
     --load_best_model_at_end True \
     --metric_for_best_model eval_ccot_exact_match \
     --report_to none \
-    --run_name pcot-gpt2-lora-3-24 \
-    --output_dir outputs/pcot-gpt2-lora-3-24
+    --run_name pccot-gpt2-lora-3-24 \
+    --output_dir outputs/pccot-gpt2-lora-3-24

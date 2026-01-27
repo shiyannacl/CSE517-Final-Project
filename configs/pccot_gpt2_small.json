@@ -1,7 +1,7 @@
 {
     "activation_function": "gelu_new",
     "architectures": [
-      "PCoTGPT2LMHeadModel"
+      "PCCoTGPT2LMHeadModel"
     ],
     "attn_pdrop": 0.1,
     "bos_token_id": 50256,

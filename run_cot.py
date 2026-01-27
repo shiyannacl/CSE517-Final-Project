@@ -549,18 +549,17 @@ def main():
         )
     
     # >>> add <bot>, <latent> and <eot> to the tokenizer
-    # pcot: parallel chain-of-thought with continuous tokens
     def get_special_token(tokenizer, token):
         if token not in tokenizer.additional_special_tokens:
             tokenizer.add_special_tokens({'additional_special_tokens': (token, )}, replace_additional_special_tokens=False)
         return tokenizer.convert_tokens_to_ids(token)
 
     if pccot_args.bot_token_id is None:
-        pccot_args.bot_token_id = get_special_token(tokenizer, '<pcot.bot>')
+        pccot_args.bot_token_id = get_special_token(tokenizer, '<pccot.bot>')
     if pccot_args.eot_token_id is None:
-        pccot_args.eot_token_id = get_special_token(tokenizer, '<pcot.eot>')
+        pccot_args.eot_token_id = get_special_token(tokenizer, '<pccot.eot>')
     if pccot_args.latent_token_id is None:
-        pccot_args.latent_token_id = get_special_token(tokenizer, '<pcot.latent>')
+        pccot_args.latent_token_id = get_special_token(tokenizer, '<pccot.latent>')
     if tokenizer.pad_token_id is None:
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     if tokenizer.eos_token_id is None:
