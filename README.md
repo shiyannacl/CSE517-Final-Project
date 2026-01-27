@@ -13,11 +13,11 @@
 
 The code base for project **Parallel Continuous Chain-of-Thought**, parallelizing the continuous chain-of-thought approach with Jacobi iteration. It improves both training and inference efficiency of continuous chain-of-thought, with better performance on reasoning tasks. The paper "[Parallel Continuous Chain-of-Thought with Jacobi Iteration](https://arxiv.org/abs/2506.18582)" was accepted to EMNLP 2025 main conference.
 
-Welcome to come to our oral session at EMNLP 2025, Session 5, Wed, November 5, 16:30-18:00.
+Replay our [oral session](https://us06web.zoom.us/rec/play/v0MHwK2lCarjViyIHBB-hIoLNpvYG1KgJo_g057nNTY89UPpvAHlhDRbY4PcYWKJS9pwfboDVtRs7Vk.-2oAxs1vGNveLoY1?eagerLoadZvaPages=&isReferralProgramEnabled=false&isReferralProgramAvailable=false&accessLevel=meeting&canPlayFromShare=true&from=share_recording_detail&startTime=1762330818000&componentName=rec-play&originRequestUrl=https%3A%2F%2Fus06web.zoom.us%2Frec%2Fshare%2Fw7j_Ng_huVt9Eip-jOsB4cfw2xczpIVjYbKu2SRdbAiMkkxryRPTDqiE_25Hi5I5.S2f836Ct4WhB3B6l%3FstartTime%3D1762330818000) at EMNLP 2025.
 
 ## Installation
 
-Change the cuda version if it is not compatible. Developped with python 3.12.4.
+Please install `pytorch`, `flash-attn`, then those packages in `requirements.txt`. Below is how I install these packages. It is not necessary to follow that exactly the same. Developped with python 3.12.4.
 
 ```bash
 conda install pytorch=2.5.1 pytorch-cuda=12.1 -c pytorch -c nvidia
