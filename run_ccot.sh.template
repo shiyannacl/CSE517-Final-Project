@@ -2,6 +2,7 @@
 echo "Start running..."
 export HF_ENDPOINT=https://hf-mirror.com
 
+# gpt2 small
 accelerate launch run_ccot.py \
     --model_name_or_path gpt2 \
     --config_name configs/pccot_gpt2_small.json \
@@ -40,3 +41,44 @@ accelerate launch run_ccot.py \
     --report_to none \
     --run_name pccot-gpt2-lora-3-24 \
     --output_dir outputs/pccot-gpt2-lora-3-24
+
+
+# llama3.2 1b
+accelerate launch run_ccot.py \
+    --model_name_or_path alpindale/Llama-3.2-1B-Instruct \
+    --config_name configs/pccot_llama3.2_1b_inst.json \
+    --config_overrides loss_gamma=20.0,num_iterations=3,use_layerwise_std=false \
+    --num_latent_tokens 24 \
+    --dataset_name whynlp/gsm8k-aug \
+    --label_names labels cot_labels \
+    --lora_target_modules q_proj-k_proj-v_proj-o_proj-down_proj-up_proj-gate_proj \
+    --lora_modules_to_save "" \
+    --remove_unused_columns false \
+    --per_device_train_batch_size 32 \
+    --per_device_eval_batch_size 32 \
+    --auto_find_batch_size \
+    --gradient_accumulation_steps 1 \
+    --block_size 1024 \
+    --attn_implementation flash_attention_2 \
+    --use_liger_kernel \
+    --lr_scheduler_type cosine \
+    --warmup_ratio 0.03 \
+    --learning_rate 8e-4 \
+    --weight_decay 1e-1 \
+    --bf16 \
+    --torch_dtype bfloat16 \
+    --do_train \
+    --do_eval \
+    --do_predict \
+    --num_train_epochs 10 \
+    --save_total_limit 1 \
+    --save_strategy steps \
+    --save_steps 200 \
+    --evaluation_strategy steps \
+    --eval_steps 200 \
+    --logging_steps 50 \
+    --load_best_model_at_end True \
+    --metric_for_best_model eval_ccot_exact_match \
+    --report_to none \
+    --run_name pccot-llama1b-lora-3-24 \
+    --output_dir outputs/pccot-llama1b-lora-3-24
