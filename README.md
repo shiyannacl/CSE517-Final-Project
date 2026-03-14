@@ -13,7 +13,8 @@
 
 This repository is our **CSE517 reproduction project** for the paper
 "[Parallel Continuous Chain-of-Thought with Jacobi Iteration](https://arxiv.org/abs/2506.18582)".
-The original PCCoT project studies parallel continuous chain-of-thought reasoning with Jacobi iteration.(https://github.com/whyNLP/PCCoT)
+The original [PCCoT project](https://github.com/whyNLP/PCCoT) studies parallel continuous chain-of-thought reasoning with Jacobi iteration.
+
 
 This codebase contains both the original PCCoT implementation and our reproduction-oriented additions, including:
 
