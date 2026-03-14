@@ -3,21 +3,41 @@
 <div align="center">
 <img width="200" src="imgs/cover.jpg" />
 <p>
-  By parallelizing the thought process
+  CSE517 reproduction and benchmarking project for PCCoT
   <br>
-  the training speeds up, the inference speeds up
+  with added local training, inference benchmarking,
   <br>
-  and the performance rises up.
+  analysis, and data preprocessing utilities.
 </p>
 </div>
 
-The code base for project **Parallel Continuous Chain-of-Thought**, parallelizing the continuous chain-of-thought approach with Jacobi iteration. It improves both training and inference efficiency of continuous chain-of-thought, with better performance on reasoning tasks. The paper "[Parallel Continuous Chain-of-Thought with Jacobi Iteration](https://arxiv.org/abs/2506.18582)" was accepted to EMNLP 2025 main conference.
+This repository is our **CSE517 reproduction project** for the paper
+"[Parallel Continuous Chain-of-Thought with Jacobi Iteration](https://arxiv.org/abs/2506.18582)".
+The original PCCoT project studies parallel continuous chain-of-thought reasoning with Jacobi iteration.
 
-Replay our [oral session](https://us06web.zoom.us/rec/play/v0MHwK2lCarjViyIHBB-hIoLNpvYG1KgJo_g057nNTY89UPpvAHlhDRbY4PcYWKJS9pwfboDVtRs7Vk.-2oAxs1vGNveLoY1?eagerLoadZvaPages=&isReferralProgramEnabled=false&isReferralProgramAvailable=false&accessLevel=meeting&canPlayFromShare=true&from=share_recording_detail&startTime=1762330818000&componentName=rec-play&originRequestUrl=https%3A%2F%2Fus06web.zoom.us%2Frec%2Fshare%2Fw7j_Ng_huVt9Eip-jOsB4cfw2xczpIVjYbKu2SRdbAiMkkxryRPTDqiE_25Hi5I5.S2f836Ct4WhB3B6l%3FstartTime%3D1762330818000) at EMNLP 2025.
+This codebase contains both the original PCCoT implementation and our reproduction-oriented additions, including:
+
+- local GSM8K-format data preprocessing
+- reproducible training shell scripts
+- benchmark inference speed testing
+- multi-seed evaluation utilities
+- result collection and error analysis scripts
+
+## Project Scope
+
+This repo should be read as a **reproduction + course project workspace**, not just a clean mirror of the original paper code.
+
+In particular, our CSE517 work adds support for:
+
+- training from locally converted GSM8K-style JSONL data
+- benchmarking PCCoT vs standard CoT inference throughput
+- collecting and summarizing multi-run evaluation results
+- analyzing prediction errors for reproduced runs
 
 ## Installation
 
-Please install `pytorch`, `flash-attn`, then those packages in `requirements.txt`. Below is how I install these packages. It is not necessary to follow that exactly the same. Developped with python 3.12.4.
+Install `pytorch`, `flash-attn`, and the packages in `requirements.txt`.
+The original project was developed with Python 3.12.4.
 
 ```bash
 conda install pytorch=2.5.1 pytorch-cuda=12.1 -c pytorch -c nvidia
@@ -26,97 +46,147 @@ pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.
 pip install -r requirements.txt
 ```
 
-## Quick Start
+## Repository Additions For CSE517
 
-We have released a finetuned GPT-2 model described in our paper on [HuggingFace](https://huggingface.co/whynlp/pccot-gpt2). To run this model, please first clone this repo then execute the following command:
+The most relevant scripts for our reproduction workflow are:
+
+- [run_ccot_train0.sh](/data1/yan/PCCoT/run_ccot_train0.sh): local PCCoT training entry point
+- [run_ccot_test_3seeds.sh](/data1/yan/PCCoT/run_ccot_test_3seeds.sh): multi-seed evaluation wrapper
+- [prepare_gsm8k_aug_like.py](/data1/yan/PCCoT/prepare_gsm8k_aug_like.py): convert `openai/gsm8k` to PCCoT-compatible JSONL
+- [benchmark_inference_time.py](/data1/yan/PCCoT/benchmark_inference_time.py): benchmark PCCoT vs CoT inference speed
+- [collect_results.py](/data1/yan/PCCoT/collect_results.py): collect metrics from experiment folders
+- [plot_results.py](/data1/yan/PCCoT/plot_results.py): plot summarized metrics
+- [analyze_prediction_errors.py](/data1/yan/PCCoT/analyze_prediction_errors.py): inspect prediction failures
+
+## Data Preprocessing
+
+For our reproduction, we often use locally converted GSM8K data instead of relying only on the hosted augmented dataset.
+
+Convert `openai/gsm8k` into a `gsm8k-aug-like` schema:
+
+```bash
+python prepare_gsm8k_aug_like.py \
+  --dataset_name openai/gsm8k \
+  --dataset_config main \
+  --out_dir data/gsm8k_aug_like \
+  --step_style math
+```
+
+Optional:
+
+- use `--step_style nl` to keep natural-language rationale lines
+- use `--test_from_validation` if you want `test.jsonl` copied from the validation split
+
+The generated format is compatible with the processor in [data_processor.py](/data1/yan/PCCoT/models/data_processor.py).
+
+## Training
+
+For the CSE517 reproduction, the main training entry point is:
+
+```bash
+bash run_ccot_train0.sh
+```
+
+This script:
+
+- checks for local JSONL files under `data/gsm8k_aug_like` or `data/gsm8k_aug_like_check`
+- launches PCCoT training with `run_ccot.py`
+- currently trains a GPT-2 based PCCoT configuration
+
+The main trainer implementation remains:
+
+- [run_ccot.py](/data1/yan/PCCoT/run_ccot.py)
+- [run_cot.py](/data1/yan/PCCoT/run_cot.py)
+
+If you want the original template-based workflow, the repo still includes:
+
+- [run_ccot.sh.template](/data1/yan/PCCoT/run_ccot.sh.template)
+- [run_cot.sh.template](/data1/yan/PCCoT/run_cot.sh.template)
+
+## Benchmark Inference Testing
+
+We added a dedicated benchmark script to measure inference throughput for PCCoT and compare it against standard CoT:
+
+```bash
+python benchmark_inference_time.py \
+  --model_name_or_path gpt2 \
+  --pccot_config_name configs/pccot_gpt2_small.json \
+  --iterations 1,3,5,7 \
+  --latent_tokens 6,12,18,24 \
+  --num_questions 128 \
+  --batch_size 16
+```
+
+This script:
+
+- benchmarks a standard CoT baseline first
+- benchmarks PCCoT under different iteration counts and latent token counts
+- writes CSV and JSON summaries under `outputs/inference_benchmarks/`
+
+## Evaluation And Multi-Seed Testing
+
+For repeated evaluation in our reproduction experiments:
+
+```bash
+bash run_ccot_test_3seeds.sh
+```
+
+By default, this runs seeds `42 52 62`.
+
+Useful environment variables:
+
+- `CKPT_PATH=/abs/path/to/checkpoint` to evaluate the same checkpoint under multiple seeds
+- `EVAL_MODE=numeric` to use trainer metrics
+- `EVAL_MODE=generation` to use free generation with [test_ccot.py](/data1/yan/PCCoT/test_ccot.py)
+
+This workflow also writes a summary JSON using `summarize_seed_tests.py`.
+
+## Analysis
+
+We added several scripts for analyzing reproduced runs:
+
+```bash
+python collect_results.py
+python plot_results.py
+python analyze_prediction_errors.py
+```
+
+These scripts are intended for post-hoc reporting and debugging:
+
+- aggregate metrics across output folders
+- visualize performance trends
+- inspect wrong predictions and failure patterns
+
+## Quick Example
+
+The original example entry point is still available:
 
 ```bash
 python example.py
 ```
 
-It provides an example usage of PCCoT model. See `example.py` for more details.
+## Configuration
 
-## Usage
+We provide sample model configs in `configs/`.
+The core PCCoT configuration classes are defined in:
 
-Our implementation is based on HuggingFace `transformers`. We register new models `pccot-gpt2` and `pccot-llama` to facilitate the usage of PCCoT.
+- [configuration_gpt2.py](/data1/yan/PCCoT/models/configuration_gpt2.py)
+- [configuration_llama.py](/data1/yan/PCCoT/models/configuration_llama.py)
+- [pccot_arguments.py](/data1/yan/PCCoT/models/pccot_arguments.py)
 
-### Training
+You can either modify the JSON config files directly or override config values from the command line.
 
-To train a PCCoT model, copy `run_ccot.sh.template` to `run_ccot.sh` and run it.
-
-```bash
-# for the first time execution
-cp run_ccot.sh.template run_ccot.sh
-
-# run the script
-bash run_ccot.sh
-```
-
-It will finetune a GPT-2 and a Llama3.2-1B model on the [GSM8K-AUG](https://huggingface.co/datasets/whynlp/gsm8k-aug) dataset. See the script for more details.
-
-We use the same [training script](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm.py) as the original `transformers` library with slight modifications. You may refer to the [official documentation](https://huggingface.co/transformers/training.html) for more details.
-
-To train a standard CoT model, use the `run_cot.sh.template` instead.
-
-### Testing
-
-The training script can also be used for testing and the metric will test the accuracy of the model generating every answer token correctly. In case you want to test the model with real generation result, use the `test_ccot.sh.template` script.
+Example:
 
 ```bash
-# for the first time execution
-cp test_ccot.sh.template test_ccot.sh
-
-# run the script
-bash test_ccot.sh
+python -m accelerate.commands.launch run_ccot.py \
+  --config_name configs/pccot_gpt2_small.json \
+  --config_overrides num_iterations=3
 ```
 
-It will test the model on the [GSM8K-AUG](https://huggingface.co/datasets/whynlp/gsm8k-aug) dataset. See the script for more details.
+## Notes
 
-To test a standard CoT model, use the `test_cot.sh.template` instead.
+- This repository contains original PCCoT code plus our reproduction-oriented modifications.
+- The README here documents the project as used in **CSE517**.
+- If you want the original paper/project description, some upstream text is retained in the code and scripts, but this repo is now organized around reproducible coursework experiments.
 
-### Configuration
-
-We provide some sample configuration files in the  `configs` folder. The config settings are defined in [models/configuration_gpt2.py](models/configuration_gpt2.py). You may refer to this file for more details.
-
-#### Option 1: Modify the configurations in python:
-
-```python
-from models import PCCoTGPT2Config
-
-# we have prepared a sample configuration file
-config = PCCoTGPT2Config.from_pretrained("configs/pccot_gpt2_small.json")
-
-# setup the loss weights described in CODI
-config.loss_alpha = 1
-config.loss_beta = 1
-config.loss_gamma = 1
-
-# setup the number of iterations
-config.num_iterations = 3
-```
-
-#### Option 2: Modify the configurations in the shell script (via `--config_overrides`):
-
-```sh
-accelerate launch run_ccot.py \
-    --config_name configs/pccot_gpt2_small.json \
-    --config_overrides loss_gamma=1,num_iterations=3 \
-    ...
-```
-
-#### Other Arguments
-
-There are also some other configurations defined in [models/pccot_arguments.py](models/pccot_arguments.py). You may refer to this file for more details.
-
-To setup the arguments just write them in the shell script:
-
-```sh
-accelerate launch run_ccot.py \
-    --use_chat_template true \
-    --num_latent_tokens 24 \
-    --answer_prompt "The answer is:" \
-    --lora_r 128 \
-    ...
-```
-
-If you are loading a trained PCCoT model, then these arguments will by default be loaded from the checkpoint. If you want to override them, please remove the corresponding codes in the python script.

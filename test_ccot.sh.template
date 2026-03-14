@@ -2,7 +2,8 @@
 echo "Start running..."
 export HF_ENDPOINT=https://hf-mirror.com
 
-accelerate launch test_ccot.py \
+# Use the Python from the currently active environment to run accelerate
+python -m accelerate.launch test_ccot.py \
     --model_name_or_path whynlp/pccot-gpt2 \
     --dataset_name whynlp/gsm8k-aug \
     --label_names labels \
@@ -14,7 +15,6 @@ accelerate launch test_ccot.py \
     --auto_find_batch_size \
     --block_size 1024 \
     --attn_implementation flash_attention_2 \
-    --use_liger_kernel \
     --bf16 \
     --torch_dtype bfloat16 \
     --do_eval \

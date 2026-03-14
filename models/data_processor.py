@@ -1,3 +1,4 @@
+import re
 from typing import List, Union
 import torch
 
@@ -72,6 +73,45 @@ class COTDataProcessor:
         )
 
     def tokenize_function(self, examples):
+        def extract_final_answer(answer_text: str) -> str:
+            if not isinstance(answer_text, str):
+                answer_text = "" if answer_text is None else str(answer_text)
+
+            final = answer_text
+            if "####" in answer_text:
+                final = answer_text.rsplit("####", 1)[1]
+            final = final.strip()
+
+            # GSM8K finals are typically numeric; keep the first numeric span if present.
+            numeric_match = re.search(r"-?\d+(?:,\d{3})*(?:\.\d+)?", final)
+            if numeric_match is not None:
+                return numeric_match.group(0).replace(",", "")
+            return final
+
+        def extract_rationale_and_answer(examples_batch):
+            if "steps" in examples_batch:
+                rationales = []
+                answers = []
+                for steps, answer in zip(examples_batch["steps"], examples_batch["answer"]):
+                    steps = steps if isinstance(steps, list) else []
+                    rationale = "".join(steps[:-1]) if len(steps) > 1 else ""
+                    rationales.append(rationale)
+                    answers.append(extract_final_answer(answer))
+                return rationales, answers
+
+            # openai/gsm8k style: answer is one string with rationale + `#### final`
+            rationales = []
+            answers = []
+            for answer_text in examples_batch["answer"]:
+                answer_text = "" if answer_text is None else str(answer_text)
+                if "####" in answer_text:
+                    rationale_text, _ = answer_text.rsplit("####", 1)
+                else:
+                    rationale_text = ""
+                rationales.append(rationale_text)
+                answers.append(extract_final_answer(answer_text))
+            return rationales, answers
+
         # if use chat template and the tokenizer has chat template, use it
         if (
             self.pccot_args.use_chat_template
@@ -89,17 +129,19 @@ class COTDataProcessor:
                 add_special_tokens=True,
             )["input_ids"]
 
+        rationales, final_answers = extract_rationale_and_answer(examples)
+
         # tokenize the steps and answer
         output = {
             "question": question,
             "steps": [
-                self.tokenizer(
-                    steps[:-1], return_attention_mask=False, add_special_tokens=False
-                )["input_ids"]
-                if len(steps) > 1 else []
-                for steps in examples["steps"]
+                [self.tokenizer(
+                    rationale, return_attention_mask=False, add_special_tokens=False
+                )["input_ids"]]
+                if rationale else []
+                for rationale in rationales
             ],
-            "answer": batch_tokenize_number(self.tokenizer, examples["answer"]),
+            "answer": batch_tokenize_number(self.tokenizer, final_answers),
         }
         return output
 

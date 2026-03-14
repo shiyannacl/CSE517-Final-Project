@@ -25,6 +25,7 @@ import logging
 import math
 import os
 import sys
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from itertools import chain
@@ -778,6 +779,7 @@ def main():
         metric = evaluate.load("exact_match", cache_dir=model_args.cache_dir)
         preds = []
         labels = []
+        pred_rows = []
         
         for batch in tqdm(batched(raw_datasets[split], n=training_args.per_device_eval_batch_size), desc=f"Evaluating {split} set", total=len(raw_datasets[split])//training_args.per_device_eval_batch_size):
             questions = [item['question'] for item in batch]
@@ -785,8 +787,10 @@ def main():
 
             decoded_tokens = model.generate(
                 collated=collated,
-                max_new_tokens=10,
-                do_sample=False,
+                max_new_tokens=pccot_args.generation_max_new_tokens,
+                do_sample=pccot_args.generation_do_sample,
+                temperature=pccot_args.generation_temperature,
+                top_p=pccot_args.generation_top_p,
             )
             
             decoded_tokens = decoded_tokens[:, collated["input_ids"].shape[1]:]  # remove the input_ids part
@@ -794,8 +798,27 @@ def main():
             
             preds.extend(answers)
             labels.extend([item['answer'] for item in batch])
+            pred_rows.extend(
+                {
+                    "question": q,
+                    "prediction": p,
+                    "reference": r,
+                    "exact_match": p.strip() == str(r).strip(),
+                }
+                for q, p, r in zip(questions, answers, [item["answer"] for item in batch])
+            )
         
         cot_result = metric.compute(predictions=preds, references=labels)
+
+        if pccot_args.save_predictions_dir:
+            pred_dir = Path(pccot_args.save_predictions_dir)
+            pred_dir.mkdir(parents=True, exist_ok=True)
+            pred_path = pred_dir / f"{split}_predictions.jsonl"
+            with pred_path.open("w", encoding="utf-8") as f:
+                for row in pred_rows:
+                    f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            logger.info(f"Saved prediction dump to: {pred_path}")
+
         return cot_result
 
 

@@ -41,6 +41,26 @@ class PCCoTArguments:
         default=6,
         metadata={"help": "The number of latent tokens to use in the PCCoT model."}
     )
+    generation_max_new_tokens: int = field(
+        default=10,
+        metadata={"help": "Maximum new tokens for generation-time evaluation."}
+    )
+    generation_do_sample: bool = field(
+        default=False,
+        metadata={"help": "Whether to use sampling during generation-time evaluation."}
+    )
+    generation_temperature: float = field(
+        default=1.0,
+        metadata={"help": "Sampling temperature used when generation_do_sample=True."}
+    )
+    generation_top_p: float = field(
+        default=1.0,
+        metadata={"help": "Nucleus sampling top-p used when generation_do_sample=True."}
+    )
+    save_predictions_dir: str = field(
+        default="",
+        metadata={"help": "If set, dump per-example predictions to <save_predictions_dir>/<split>_predictions.jsonl."}
+    )
 
     # PEFT arguments
     use_peft: bool = field(
